@@ -12,12 +12,12 @@ from models.place import Place
 @app_views.route('/places/<place_id>/reviews', methods=['GET'],
                  strict_slashes=False)
 def get_all_reviews(place_id):
-    """REtrieves the list of all reviews"""
-    allReviews = storage.get(Place, place_id)
+    """Retrieves the list of all reviews"""
+    place = storage.get(Place, place_id)
     if not place:
         abort(404)
     allReviewsList = []
-    for review in allReviews:
+    for review in place.reviews:
         allReviewsList.append(review.to_dict)
     return jsonify(allReviewsList)
 
