@@ -17,8 +17,10 @@ def get_all_reviews(place_id):
     if not place:
         abort(404)
     allReviewsList = []
-    for review in place.reviews:
-        allReviewsList.append(review.to_dict)
+    reviews = storage.all(Review).values()
+    for review in reviews:
+        if review.place_id == place_id:
+            allReviewsList.append(review.to_dict())
     return jsonify(allReviewsList)
 
 
@@ -54,16 +56,16 @@ def post_review(place_id):
         abort(404)
     if not request.get_json():
         abort(400, description="Not a JSON")
-    HTTPrequest = request.get_json()
-    if 'user_id' not in HTTPrequest:
+    http_request = request.get_json()
+    if 'user_id' not in http_request:
         abort(400, description="Missing user_id")
-    user = storage.get(User, HTTPrequest['user_id'])
+    user = storage.get(User, http_request['user_id'])
     if not user:
         abort(404)
-    if 'text' not in HTTPrequest:
+    if 'text' not in http_request:
         abort(400, description="Missing text")
-    HTTPrequest['place_id'] = place_id
-    newReview = Review(**HTTPrequest)
+    http_request['place_id'] = place_id
+    newReview = Review(**http_request)
     newReview.save()
     return make_response(jsonify(newReview.to_dict()), 201)
 
@@ -77,9 +79,9 @@ def update_review(review_id):
         abort(404)
     if not request.get_json:
         abort(400, description="Not a JSON")
-    HTTPrequest = request.get_json()
+    http_request = request.get_json()
     ignore = ['id', 'user_id', 'place_id', 'created_at', 'updated_at']
-    for key, value in HTTPrequest.items():
+    for key, value in http_request.items():
         if key not in ignore:
             setattr(review, key, value)
     storage.save()
