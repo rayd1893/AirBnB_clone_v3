@@ -54,12 +54,12 @@ def post_review(place_id):
     http_request = request.get_json()
     if 'user_id' not in http_request:
         abort(400, description="Missing user_id")
-    user = storage.get(User, http_request['user_id'])
-    if not user:
-        abort(404)
     if 'text' not in http_request:
         abort(400, description="Missing text")
     http_request['place_id'] = place_id
+    user = storage.get(User, http_request['user_id'])
+    if not user:
+        abort(404)
     newReview = Review(**http_request)
     newReview.save()
     return make_response(jsonify(newReview.to_dict()), 201)
@@ -69,11 +69,11 @@ def post_review(place_id):
                  strict_slashes=False)
 def update_review(review_id):
     """update a review"""
+    if not request.get_json:
+        abort(400, description="Not a JSON")
     review = storage.get(Review, review_id)
     if not review:
         abort(404)
-    if not request.get_json:
-        abort(400, description="Not a JSON")
     http_request = request.get_json()
     ignore = ['id', 'user_id', 'place_id', 'created_at', 'updated_at']
     for key, value in http_request.items():
