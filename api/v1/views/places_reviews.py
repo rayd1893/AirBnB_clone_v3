@@ -52,9 +52,9 @@ def post_review(place_id):
     place = storage.get(Place, place_id)
     if not place:
         abort(404)
-    HTTPrequest = request.get_json()
-    if not HTTPrequest:
+    if not request.get_json():
         abort(400, description="Not a JSON")
+    HTTPrequest = request.get_json()
     if 'user_id' not in HTTPrequest:
         abort(400, description="Missing user_id")
     user = storage.get(User, HTTPrequest['user_id'])
@@ -75,9 +75,9 @@ def update_review(review_id):
     review = storage.get(Review, review_id)
     if not review:
         abort(404)
-    HTTPrequest = request.get_json()
-    if not HTTPrequest:
+    if not request.get_json:
         abort(400, description="Not a JSON")
+    HTTPrequest = request.get_json()
     ignore = ['id', 'user_id', 'place_id', 'created_at', 'updated_at']
     for key, value in HTTPrequest.items():
         if key not in ignore:
