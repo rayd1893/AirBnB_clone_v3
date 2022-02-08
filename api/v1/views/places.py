@@ -5,9 +5,12 @@ Import Blueprint to create routes for Amenity
 from api.v1.views import app_views
 from flask import abort, jsonify, make_response, request
 from models import storage
+from models import city
+from models.amenity import Amenity
 from models.city import City
 from models.user import User
 from models.place import Place
+from models.state import State
 
 
 @app_views.route('/cities/<city_id>/places', methods=['GET'],
@@ -84,3 +87,57 @@ def update_place(place_id):
             setattr(place, k, v)
     place.save()
     return make_response(jsonify(place.to_dict()), 200)
+
+
+@app_views.route('/places_search', methods=['POST'], strict_slashes=False)
+def places_search():
+    """Retrieves all places depending of the JSON
+    in the body of the request"""
+    if request.get_json() is None:
+        abort(400, description="Not a JSON")
+    http_request = request.get_json()
+    if http_request and len(http_request):
+        states = http_request.get('states', None)
+        cities = http_request.get('cities', None)
+        amenities = http_request.get('amenities', None)
+    placesList = []
+    if not http_request or not len(http_request) or (
+            not states and
+            not cities and
+            not amenities):
+        places = storage.all(Place).values()
+        for place in placesList:
+            placesList.append(place.to_dict())
+        return jsonify(placesList)
+    if states:
+        statesObj = [storage.get(State, stid) for stid in states]
+        for state in statesObj:
+            if state:
+                for city in state.cities:
+                    if city:
+                        for place in city.places:
+                            placesList.append(place)
+    if cities:
+        citiesObj = [storage.get(City, ciid) for ciid in cities]
+        for city in citiesObj:
+            if city:
+                for place in city.places:
+                    placesList.append(place)
+    if amenities:
+        amenititesObj = [storage.get(Amenity, amid) for amid in amenities]
+        if not placesList:
+            placesList = storage.all(Place).values()
+        newList = []
+        for place in placesList:
+            for amenity in amenititesObj:
+                if all(amenity in place.amenities):
+                    newList.append(place)
+        placesList = newList
+
+    places = []
+    for place in placesList:
+        dictplaces = place.to_dict()
+        dictplaces.pop('amenities', None)
+        places.append(dictplaces)
+
+    return jsonify(places)
