@@ -1,6 +1,5 @@
 #!/usr/bin/python3
-"""Review object that handles all default RESTFul API actions"""
-
+""" Review object that handles all default RESTFul API actions """
 from api.v1.views import app_views
 from flask import abort, jsonify, make_response, request
 from models import storage
@@ -16,9 +15,7 @@ def get_all_reviews(place_id):
     place = storage.get(Place, place_id)
     if not place:
         abort(404)
-    allReviewsList = []
-    for review in place.reviews:
-        allReviewsList.append(review.to_dict())
+    allReviewsList = [review.to_dict() for review in place.reviews]
     return jsonify(allReviewsList)
 
 
